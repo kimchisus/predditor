@@ -12,8 +12,10 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -45,11 +47,23 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Toolbar stuff because it doesn't work by default
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(myToolbar);
+        getSupportActionBar().setIcon(R.drawable.snoo);
+        getSupportActionBar().setTitle("Predditor");
+        getSupportActionBar().setDisplayShowTitleEnabled(true); //optional
+
         userCollectionPagerAdapter = new UserCollectionPagerAdapter(getSupportFragmentManager());
         viewPager = (ViewPager) findViewById(R.id.pager);
         viewPager.setAdapter(userCollectionPagerAdapter);
     }
 
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.action_bar_menu, menu);
+        return super.onPrepareOptionsMenu(menu);
+    }
     public class UserCollectionPagerAdapter extends FragmentStatePagerAdapter {
         public UserCollectionPagerAdapter(FragmentManager fm) {
             super(fm);
