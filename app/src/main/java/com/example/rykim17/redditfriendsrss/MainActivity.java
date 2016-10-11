@@ -1,9 +1,15 @@
 package com.example.rykim17.redditfriendsrss;
 
+import android.app.ActionBar;
 import android.content.Context;
-import android.location.Address;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -29,6 +35,8 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 public class MainActivity extends AppCompatActivity {
+    UserCollectionPagerAdapter userCollectionPagerAdapter;
+    ViewPager viewPager;
     private SAXParser saxParser;
     private ListView commentPicker;
 
@@ -36,12 +44,59 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        this.commentPicker = (ListView) findViewById(R.id.commentPicker);
-        RssProcessingTask rssProcessingTask = new RssProcessingTask();
-        rssProcessingTask.execute();
+
+        userCollectionPagerAdapter = new UserCollectionPagerAdapter(getSupportFragmentManager());
+        viewPager = (ViewPager) findViewById(R.id.pager);
+        viewPager.setAdapter(userCollectionPagerAdapter);
     }
 
-    class RssProcessingTask extends AsyncTask<Void, Void, Void> {
+    public class UserCollectionPagerAdapter extends FragmentStatePagerAdapter {
+        public UserCollectionPagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            Fragment fragment = new UserFragment();
+            Bundle args = new Bundle();
+            args.putInt(UserFragment.ARG_OBJECT, position + 1);
+            fragment.setArguments(args);
+            return fragment;
+        }
+
+        @Override
+        public int getCount() {
+            return 100;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return "/u/ " + (position + 1);
+        }
+    }
+
+    public static class UserFragment extends Fragment {
+        public static final String ARG_OBJECT = "object";
+
+        @Nullable
+        @Override
+        public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+            View rootView = inflater.inflate(R.layout.user_template, container, false);
+
+            Bundle args = getArguments();
+
+
+//            this.commentPicker = (ListView) findViewById(R.id.commentPicker);
+//            RssProcessingTask rssProcessingTask = new RssProcessingTask();
+//            rssProcessingTask.execute();
+
+            ((TextView) rootView.findViewById(android.R.id.text1)).setText(Integer.toString(args.getInt(ARG_OBJECT)));
+            return rootView;
+        }
+    }
+
+
+        class RssProcessingTask extends AsyncTask<Void, Void, Void> {
         private RedditUserCommentHandler commentHandler;
 
         @Override
