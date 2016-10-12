@@ -3,6 +3,7 @@ package com.example.rykim17.redditfriendsrss;
 import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Parcel;
@@ -49,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
     UserCollectionPagerAdapter userCollectionPagerAdapter;
     ViewPager viewPager;
     SAXParser saxParser;
-    String[] userNames = {"barbell-kun", "rykimchi"};
     ArrayList<Redditor> redditors = new ArrayList<Redditor>();
 
     @Override
@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Toolbar stuff because it doesn't work by default
+        // Toolbar stuff because it doesn't work by default WHYYYYY?! FUUUUUUU~
         Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(myToolbar);
         getSupportActionBar().setIcon(R.drawable.snoo);
@@ -66,8 +66,6 @@ public class MainActivity extends AppCompatActivity {
 
 
         // TODO: Grab all the data using the sax parser, iterate through the usernames
-        // Grab all comments then populate the list according according to the User objects you pass.
-        // ALL DONE VOILA!~
         RssProcessingTask rssProcessingTask = new RssProcessingTask();
         rssProcessingTask.execute();
     }
@@ -277,7 +275,12 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+
+
+            // Todo: Get a list of saved usernames to get a list of redditor objects.
             redditors.add(new Redditor("ReallyRickAstley", commentHandler.getTitles(), commentHandler.getContent(), commentHandler.getUrls()));
+
+
             userCollectionPagerAdapter = new UserCollectionPagerAdapter(getSupportFragmentManager(), redditors);
             viewPager = (ViewPager) findViewById(R.id.pager);
             viewPager.setAdapter(userCollectionPagerAdapter);
@@ -469,9 +472,21 @@ public class MainActivity extends AppCompatActivity {
             v.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    v.setBackgroundColor(Color.parseColor("#f2f2f2"));
                     Intent intent = new Intent(getContext(), RedditView.class);
                     intent.putExtra("url", urlStr);
                     getContext().startActivity(intent);
+                }
+            });
+
+            v.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View v, boolean hasFocus) {
+                    if(hasFocus) {
+                        v.setBackgroundColor(Color.LTGRAY);
+                    } else {
+                        v.setBackgroundColor(Color.WHITE);
+                    }
                 }
             });
 
