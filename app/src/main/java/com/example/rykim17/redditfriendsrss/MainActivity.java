@@ -155,8 +155,12 @@ public class MainActivity extends AppCompatActivity {
         };
     }
 
-    public class Comment {
-        String title, content, url, time;
+
+    public class Comment implements Parcelable {
+        String title;
+        String content;
+        String url;
+        String time;
 
         public Comment(String title, String content, String url, String time) {
             this.title = title;
@@ -173,7 +177,63 @@ public class MainActivity extends AppCompatActivity {
             return this.url;
         }
         public String getTime() { return this.time; }
+
+        protected Comment(Parcel in) {
+            title = in.readString();
+            content = in.readString();
+            url = in.readString();
+            time = in.readString();
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeString(title);
+            dest.writeString(content);
+            dest.writeString(url);
+            dest.writeString(time);
+        }
+
+        @SuppressWarnings("unused")
+        public final Parcelable.Creator<Comment> CREATOR = new Parcelable.Creator<Comment>() {
+            @Override
+            public Comment createFromParcel(Parcel in) {
+                return new Comment(in);
+            }
+
+            @Override
+            public Comment[] newArray(int size) {
+                return new Comment[size];
+            }
+        };
     }
+
+//    public class Comment {
+//        String title;
+//        String content;
+//        String url;
+//        String time;
+//
+//        public Comment(String title, String content, String url, String time) {
+//            this.title = title;
+//            this.content = content;
+//            this.url = url;
+//            this.time = time;
+//        }
+//
+//        public String getTitle() {
+//            return this.title;
+//        }
+//        public String getContent() { return this.content; }
+//        public String getUrl() {
+//            return this.url;
+//        }
+//        public String getTime() { return this.time; }
+//    }
 
     class RssProcessingTask extends AsyncTask<Void, Void, Void> {
         private RedditUserCommentHandler commentHandler;
