@@ -50,8 +50,8 @@ public class MainActivity extends AppCompatActivity {
     UserCollectionPagerAdapter userCollectionPagerAdapter;
     ViewPager viewPager;
     SAXParser saxParser;
-    ArrayList<Redditor> redditors = new ArrayList<Redditor>();
-    ArrayList<String> userNames = new ArrayList<String>();
+    ArrayList<Redditor> redditors;
+    ArrayList<String> userNames;
     int currentUserIndex;
     RssProcessingTask rssProcessingTask;
     @Override
@@ -66,111 +66,59 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().setTitle("Predditor");
         getSupportActionBar().setDisplayShowTitleEnabled(true); //optional
 
+        // Init variables to be used
+        redditors = new ArrayList<Redditor>();
+        userNames = new ArrayList<String>();
         userNames.add("GovSchwarzenegger");
         userNames.add("ReallyRickAstley");
-
         currentUserIndex = 0;
 
-        // TODO: Grab all the data using the sax parser, iterate through the usernames
+        // Grab all the stuff on first load because o UX reasons.
         rssProcessingTask = new RssProcessingTask();
         rssProcessingTask.execute();
     }
 
-    // Don't delete this, this is what you use to convert to parcelable.
+//    DON'T REMOVE THIS BECAUSE IT IS USED TO CONVERT TO PARCELABLE
 //    public class Redditor {
 //        private String userName;
-//        private ArrayList<String> titles;
-//        private ArrayList<String> contents;
-//        private ArrayList<String> URLs;
+//        ArrayList<Comment> comments;
 //
-//        public Redditor(String userName, ArrayList<String> titles, ArrayList<String> contents, ArrayList<String> urls) {
+//        public Redditor(String userName, ArrayList<String> titles, ArrayList<String> contents, ArrayList<String> urls, ArrayList<String> times) {
+//            comments = new ArrayList<Comment>();
 //            this.userName = userName;
-//            this.titles = titles;
-//            this.contents = contents;
-//            this.URLs = urls;
-//        }
 //
-//        public String getUserName() {
-//            return this.userName;
-//        }
-//
-//        public ArrayList<String> getTitles() {
-//            return this.titles;
-//        }
-//
-//        public ArrayList<String> getContents() {
-//            return this.contents;
-//        }
-//
-//        public ArrayList<String> getURLs() {
-//            return this.URLs;
-//        }
-//
-//        public ArrayList<Comment> getComments() {
-//            ArrayList<Comment> comments = new ArrayList<Comment>();
-//
-//            for(int i = 0; i < this.titles.size(); i++) {
-//                comments.add(new Comment(this.titles.get(i), this.contents.get(i), this.URLs.get(i)));
+//            for(int i = 0; i < titles.size(); i++) {
+//                this.comments.add(new Comment(titles.get(i), contents.get(i), urls.get(i), times.get(i)));
 //            }
-//
-//            return comments;
 //        }
+//
+//        public String getUserName() { return this.userName; }
+//        public ArrayList<Comment> getComments() { return this.comments; }
 //    }
 
     public class Redditor implements Parcelable {
         private String userName;
-        private ArrayList<String> titles;
-        private ArrayList<String> contents;
-        private ArrayList<String> URLs;
+        ArrayList<Comment> comments;
 
-        public Redditor(String userName, ArrayList<String> titles, ArrayList<String> contents, ArrayList<String> urls) {
+        public Redditor(String userName, ArrayList<String> titles, ArrayList<String> contents, ArrayList<String> urls, ArrayList<String> times) {
+            comments = new ArrayList<Comment>();
             this.userName = userName;
-            this.titles = titles;
-            this.contents = contents;
-            this.URLs = urls;
-        }
 
-        public String getUserName() {
-            return this.userName;
-        }
-        public ArrayList<String> getTitles() {
-            return this.titles;
-        }
-        public ArrayList<String> getContents() {
-            return this.contents;
-        }
-        public ArrayList<String> getURLs() {
-            return this.URLs;
-        }
-        public ArrayList<Comment> getComments() {
-            ArrayList<Comment> comments = new ArrayList<Comment>();
-
-            for(int i = 0; i < this.titles.size(); i++) {
-                comments.add(new Comment(this.titles.get(i), this.contents.get(i), this.URLs.get(i)));
+            for(int i = 0; i < titles.size(); i++) {
+                this.comments.add(new Comment(titles.get(i), contents.get(i), urls.get(i), times.get(i)));
             }
-
-            return comments;
         }
+
+        public String getUserName() { return this.userName; }
+        public ArrayList<Comment> getComments() { return this.comments; }
 
         protected Redditor(Parcel in) {
             userName = in.readString();
             if (in.readByte() == 0x01) {
-                titles = new ArrayList<String>();
-                in.readList(titles, String.class.getClassLoader());
+                comments = new ArrayList<Comment>();
+                in.readList(comments, Comment.class.getClassLoader());
             } else {
-                titles = null;
-            }
-            if (in.readByte() == 0x01) {
-                contents = new ArrayList<String>();
-                in.readList(contents, String.class.getClassLoader());
-            } else {
-                contents = null;
-            }
-            if (in.readByte() == 0x01) {
-                URLs = new ArrayList<String>();
-                in.readList(URLs, String.class.getClassLoader());
-            } else {
-                URLs = null;
+                comments = null;
             }
         }
 
@@ -182,23 +130,11 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void writeToParcel(Parcel dest, int flags) {
             dest.writeString(userName);
-            if (titles == null) {
+            if (comments == null) {
                 dest.writeByte((byte) (0x00));
             } else {
                 dest.writeByte((byte) (0x01));
-                dest.writeList(titles);
-            }
-            if (contents == null) {
-                dest.writeByte((byte) (0x00));
-            } else {
-                dest.writeByte((byte) (0x01));
-                dest.writeList(contents);
-            }
-            if (URLs == null) {
-                dest.writeByte((byte) (0x00));
-            } else {
-                dest.writeByte((byte) (0x01));
-                dest.writeList(URLs);
+                dest.writeList(comments);
             }
         }
 
@@ -215,15 +151,16 @@ public class MainActivity extends AppCompatActivity {
             }
         };
     }
-    public class Comment {
-        String title;
-        String content;
-        String url;
 
-        public Comment(String title, String content, String url) {
+
+    public class Comment {
+        String title, content, url, time;
+
+        public Comment(String title, String content, String url, String time) {
             this.title = title;
             this.content = content;
             this.url = url;
+            this.time = time;
         }
 
         public String getTitle() {
@@ -233,6 +170,7 @@ public class MainActivity extends AppCompatActivity {
         public String getUrl() {
             return this.url;
         }
+        public String getTime() { return this.time; }
     }
 
     class RssProcessingTask extends AsyncTask<Void, Void, Void> {
@@ -281,7 +219,16 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            redditors.add(new Redditor(userNames.get(currentUserIndex), commentHandler.getTitles(), commentHandler.getContent(), commentHandler.getUrls()));
+
+            Log.d("test", "before");
+            Log.d("test", Integer.toString(commentHandler.getTime().size()));
+
+            try {
+                redditors.add(new Redditor(userNames.get(currentUserIndex), commentHandler.getTitles(), commentHandler.getContent(), commentHandler.getUrls(), commentHandler.getTime()));
+            } catch(Exception e) {
+                Log.d("test", e.toString());
+            }
+
 
             if(userNames.size() > 1 && currentUserIndex == userNames.size() - 1) {
                 userCollectionPagerAdapter = new UserCollectionPagerAdapter(getSupportFragmentManager(), redditors);
@@ -297,20 +244,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     class RedditUserCommentHandler extends DefaultHandler {
-        private ArrayList<String> title;
-        private ArrayList<String> content;
-        private ArrayList<String> url;
-
+        private ArrayList<String> title, content, url, time;
         private StringBuilder stringBuilder;
-        private boolean inTitle;
-        private boolean inContent;
+        private boolean inTitle, inContent, inTime;
 
         public RedditUserCommentHandler() {
             stringBuilder = new StringBuilder();
             title = new ArrayList<String>();
             content = new ArrayList<String>();
             url = new ArrayList<String>();
-
+            time = new ArrayList<String>();
         }
 
         public ArrayList<String> getTitles() {
@@ -320,6 +263,7 @@ public class MainActivity extends AppCompatActivity {
             return this.url;
         }
         public ArrayList<String> getContent() { return this.content; }
+        public ArrayList<String> getTime() { return this.time; }
 
         @Override
         public void startDocument() throws SAXException {
@@ -330,17 +274,26 @@ public class MainActivity extends AppCompatActivity {
         public void endDocument() throws SAXException {
             super.endDocument();
 
-            // The first element is just for 'overview for:'
+            // The first for these are just data for the user. Un-needed.
             title.remove(0);
+            time.remove(0);
 
+            // Format the xml stuff.
             for(int i = 0; i < title.size(); i++) {
+                // Format the title
                 String titleStr = title.get(i);
-                titleStr = titleStr.replace("/u/ReallyRickAstley on", "").trim();
+                titleStr = titleStr.replace("/u/" + userNames.get(currentUserIndex) + " on", "").trim();
                 title.set(i, titleStr);
 
+                // Format the url
                 String urlStr = url.get(i);
                 urlStr = "http://www.reddit.com" + urlStr + "?context=3";
                 url.set(i, urlStr);
+
+                // Format the content
+                String contentStr = content.get(i);
+                contentStr = Html.fromHtml(contentStr).toString();
+                content.set(i, contentStr);
             }
         }
 
@@ -360,6 +313,8 @@ public class MainActivity extends AppCompatActivity {
                     if(attributes.getValue("href").length() > 3 && attributes.getValue("href").substring(0,3).equals("/r/")) {
                         url.add(attributes.getValue("href"));
                     }
+                case "updated":
+                    inTime = true;
                     break;
             }
         }
@@ -368,12 +323,18 @@ public class MainActivity extends AppCompatActivity {
         public void endElement(String uri, String localName, String qName) throws SAXException {
             super.endElement(uri, localName, qName);
 
-            if (qName.equals("title")) {
-                inTitle = false;
-                title.add(stringBuilder.toString());
-            } else if(qName.equals("content")) {
-                inContent = false;
-                content.add(stringBuilder.toString());
+            inTitle = inContent = inTime = false;
+
+            switch(qName) {
+                case "title":
+                    title.add(stringBuilder.toString());
+                    break;
+                case "content":
+                    content.add(stringBuilder.toString());
+                    break;
+                case "updated":
+                    time.add(stringBuilder.toString());
+                    break;
             }
         }
 
@@ -381,7 +342,7 @@ public class MainActivity extends AppCompatActivity {
         public void characters(char[] ch, int start, int length) throws SAXException {
             super.characters(ch, start, length);
 
-            if(inTitle || inContent) {
+            if(inTitle || inContent || inTime) {
                 stringBuilder.append(ch, start, length);
             }
         }
@@ -445,6 +406,7 @@ public class MainActivity extends AppCompatActivity {
         String title;
         String content;
         String urlStr;
+        String time;
 
         public TitleAdapter(Context context, int resource, ArrayList<Comment> comments) {
             super(context, resource, comments);
@@ -463,13 +425,18 @@ public class MainActivity extends AppCompatActivity {
             title = comments.get(position).getTitle();
             content = comments.get(position).getContent();
             urlStr = comments.get(position).getUrl();
+            time = comments.get(position).getTime();
 
             if (title != null) {
+                TextView topTime = (TextView) v.findViewById(R.id.topTime);
                 TextView tt = (TextView) v.findViewById(R.id.toptext);
                 TextView bt = (TextView) v.findViewById(R.id.bottomtext);
 
+                if(topTime != null) {
+                    topTime.setText(time);
+                }
+
                 if (tt != null) {
-                    content = Html.fromHtml(content).toString();
                     tt.setText(content);
                 }
 
