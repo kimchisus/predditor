@@ -3,6 +3,8 @@ package com.example.rykim17.redditfriendsrss;
 import android.app.ActionBar;
 import android.content.Context;
 import android.os.AsyncTask;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -65,13 +67,49 @@ public class MainActivity extends AppCompatActivity {
         rssProcessingTask.execute();
     }
 
-    public class Redditor {
+//    public class Redditor {
+//        private String userName;
+//        private ArrayList<String> titles;
+//        private ArrayList<String> URLs;
+//
+//        public Redditor(String userName, ArrayList<String> titles, ArrayList<String> urls) {
+//            this.userName = userName;
+//            this.titles = titles;
+//            this.URLs = urls;
+//        }
+//
+//        public String getUserName() {
+//            return this.userName;
+//        }
+//
+//        public ArrayList<String> getTitles() {
+//            return this.titles;
+//        }
+//
+//        public ArrayList<String> getURLs() {
+//            return this.URLs;
+//        }
+//
+//        public ArrayList<Comment> getComments() {
+//            ArrayList<Comment> comments = new ArrayList<Comment>();
+//
+//            for(int i = 0; i < this.titles.size(); i++) {
+//                comments.add(new Comment(this.titles.get(i), this.URLs.get(i)));
+//            }
+//
+//            return comments;
+//        }
+//    }
+
+    public class Redditor implements Parcelable {
         private String userName;
         private ArrayList<String> titles;
+        private ArrayList<String> URLs;
 
-        public Redditor(String userName, ArrayList<String> titles) {
+        public Redditor(String userName, ArrayList<String> titles, ArrayList<String> urls) {
             this.userName = userName;
             this.titles = titles;
+            this.URLs = urls;
         }
 
         public String getUserName() {
@@ -81,24 +119,90 @@ public class MainActivity extends AppCompatActivity {
         public ArrayList<String> getTitles() {
             return this.titles;
         }
+
+        public ArrayList<String> getURLs() {
+            return this.URLs;
+        }
+
+        public ArrayList<Comment> getComments() {
+            ArrayList<Comment> comments = new ArrayList<Comment>();
+
+            for(int i = 0; i < this.titles.size(); i++) {
+                comments.add(new Comment(this.titles.get(i), this.URLs.get(i)));
+            }
+
+            return comments;
+        }
+
+        protected Redditor(Parcel in) {
+            userName = in.readString();
+            if (in.readByte() == 0x01) {
+                titles = new ArrayList<String>();
+                in.readList(titles, String.class.getClassLoader());
+            } else {
+                titles = null;
+            }
+            if (in.readByte() == 0x01) {
+                URLs = new ArrayList<String>();
+                in.readList(URLs, String.class.getClassLoader());
+            } else {
+                URLs = null;
+            }
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeString(userName);
+            if (titles == null) {
+                dest.writeByte((byte) (0x00));
+            } else {
+                dest.writeByte((byte) (0x01));
+                dest.writeList(titles);
+            }
+            if (URLs == null) {
+                dest.writeByte((byte) (0x00));
+            } else {
+                dest.writeByte((byte) (0x01));
+                dest.writeList(URLs);
+            }
+        }
+
+        @SuppressWarnings("unused")
+        public final Parcelable.Creator<Redditor> CREATOR = new Parcelable.Creator<Redditor>() {
+            @Override
+            public Redditor createFromParcel(Parcel in) {
+                return new Redditor(in);
+            }
+
+            @Override
+            public Redditor[] newArray(int size) {
+                return new Redditor[size];
+            }
+        };
     }
 
     public class Comment {
-        private String title;
-        private String date;
-        private String subReddit;
-        private String context;
-        private String url;
+        String title;
+        String url;
 
-        public Comment(String title, String date, String subReddit, String context, String url) {
+        public Comment(String title, String url) {
             this.title = title;
-            this.date = date;
-            this.subReddit = subReddit;
-            this.context = context;
             this.url = url;
         }
-    }
 
+        public String getTitle() {
+            return this.title;
+        }
+
+        public String getUrl() {
+            return this.url;
+        }
+    }
 
     class RssProcessingTask extends AsyncTask<Void, Void, Void> {
         private RedditUserCommentHandler commentHandler;
@@ -143,13 +247,14 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             ArrayList<String> titles = new ArrayList<String>();
+            ArrayList<String> urls = new ArrayList<String>();
 
             for(int i = 0; i < commentHandler.getTitles().size(); i++) {
                 titles.add(commentHandler.getTitles().get(i));
+                urls.add(commentHandler.getUrls().get(i));
             }
 
-            redditors.add(new Redditor("barbell-kun", titles));
-
+            redditors.add(new Redditor("barbell-kun", titles, urls));
             userCollectionPagerAdapter = new UserCollectionPagerAdapter(getSupportFragmentManager(), redditors);
             viewPager = (ViewPager) findViewById(R.id.pager);
             viewPager.setAdapter(userCollectionPagerAdapter);
@@ -159,18 +264,26 @@ public class MainActivity extends AppCompatActivity {
     class RedditUserCommentHandler extends DefaultHandler {
         private ArrayList<String> title;
         private ArrayList<String> content;
+        private ArrayList<String> url;
+
         private StringBuilder stringBuilder;
         private boolean inTitle;
         private boolean inContent;
+        private boolean inUrl;
 
         public RedditUserCommentHandler() {
             stringBuilder = new StringBuilder();
             title = new ArrayList<String>();
             content = new ArrayList<String>();
+            url = new ArrayList<String>();
         }
 
         public ArrayList<String> getTitles() {
             return this.title;
+        }
+
+        public ArrayList<String> getUrls() {
+            return this.url;
         }
 
         @Override
@@ -189,15 +302,14 @@ public class MainActivity extends AppCompatActivity {
                 String titleStr = title.get(i);
                 titleStr = titleStr.replace("/u/barbell-kun on", "").trim();
                 title.set(i, titleStr);
-                Log.d("RAWR", "TITLE: " + titleStr);
-                Log.d("RAWR", "CONTENT: " + content.get(i));
+
+                String urlStr = url.get(i);
+                urlStr += "http://www.reddit.com";
             }
         }
 
         @Override
         public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-            Log.d("RAWR", "startElement(): " + qName);
-
             // Clear the string builder
             stringBuilder.setLength(0);
 
@@ -207,6 +319,11 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case "content":
                     inContent = true;
+                    break;
+                case "link":
+                    if(attributes.getValue("href").length() > 3 && attributes.getValue("href").substring(0,3).equals("/r/")) {
+                        url.add(attributes.getValue("href"));
+                    }
                     break;
             }
         }
@@ -252,7 +369,8 @@ public class MainActivity extends AppCompatActivity {
             Fragment fragment = new UserFragment();
             Bundle args = new Bundle();
             args.putStringArrayList("titles", redditors.get(position).getTitles());
-            args.putInt(UserFragment.ARG_OBJECT, position + 1);
+            args.putParcelable("redditorObject", redditors.get(position));
+            args.putInt(UserFragment.ARG_OBJECT, position);
             fragment.setArguments(args);
             return fragment;
         }
@@ -280,20 +398,20 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.user_template, container, false);
-
             Bundle args = getArguments();
-            Redditor redditor = (Redditor)args.get("currentUser");
-            setListAdapter(new TitleAdapter(getActivity(), android.R.layout.simple_list_item_1, args.getStringArrayList("titles")));
+            Redditor redditor = args.getParcelable("redditorObject");
+
+            setListAdapter(new TitleAdapter(getActivity(), R.layout.user_template, redditor.getComments()));
             return rootView;
         }
     }
 
-    static class TitleAdapter extends ArrayAdapter<String> {
-        private ArrayList<String> titles;
+    static class TitleAdapter extends ArrayAdapter<Comment> {
+        private ArrayList<Comment> comments;
 
-        public TitleAdapter(Context context, int resource, ArrayList<String> titles) {
-            super(context, resource, titles);
-            this.titles = titles;
+        public TitleAdapter(Context context, int resource, ArrayList<Comment> comments) {
+            super(context, resource, comments);
+            this.comments = comments;
         }
 
         @NonNull
@@ -305,7 +423,8 @@ public class MainActivity extends AppCompatActivity {
                 v = vi.inflate(R.layout.comment_template, null);
             }
 
-            String title = titles.get(position);
+            String title = comments.get(position).getTitle();
+
             if (title != null) {
                 TextView tt = (TextView) v.findViewById(R.id.toptext);
                 TextView bt = (TextView) v.findViewById(R.id.bottomtext);
