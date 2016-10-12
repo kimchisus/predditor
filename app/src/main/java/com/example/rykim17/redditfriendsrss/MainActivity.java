@@ -54,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<String> userNames;
     int currentUserIndex;
     RssProcessingTask rssProcessingTask;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,13 +65,14 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(myToolbar);
         getSupportActionBar().setIcon(R.drawable.snoo);
         getSupportActionBar().setTitle("Predditor");
-        getSupportActionBar().setDisplayShowTitleEnabled(true); //optional
+        getSupportActionBar().setDisplayShowTitleEnabled(true);
 
         // Init variables to be used
         redditors = new ArrayList<Redditor>();
         userNames = new ArrayList<String>();
         userNames.add("GovSchwarzenegger");
         userNames.add("ReallyRickAstley");
+        userNames.add("rykimchi");
         currentUserIndex = 0;
 
         // Grab all the stuff on first load because o UX reasons.
@@ -95,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
 //        public String getUserName() { return this.userName; }
 //        public ArrayList<Comment> getComments() { return this.comments; }
 //    }
+
 
     public class Redditor implements Parcelable {
         private String userName;
@@ -152,7 +155,6 @@ public class MainActivity extends AppCompatActivity {
         };
     }
 
-
     public class Comment {
         String title, content, url, time;
 
@@ -192,7 +194,6 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-
 
             try {
                 url = new URL("https://www.reddit.com/user/" + userNames.get(currentUserIndex) + "/comments/.rss");
@@ -440,9 +441,8 @@ public class MainActivity extends AppCompatActivity {
             v.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    v.setBackgroundColor(Color.parseColor("#f2f2f2"));
                     Intent intent = new Intent(getContext(), RedditView.class);
-                    intent.putExtra("url", urlStr);
+                    intent.putExtra("url", urlStr.trim());
                     getContext().startActivity(intent);
                 }
             });
