@@ -220,15 +220,7 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
 
-            Log.d("test", "before");
-            Log.d("test", Integer.toString(commentHandler.getTime().size()));
-
-            try {
-                redditors.add(new Redditor(userNames.get(currentUserIndex), commentHandler.getTitles(), commentHandler.getContent(), commentHandler.getUrls(), commentHandler.getTime()));
-            } catch(Exception e) {
-                Log.d("test", e.toString());
-            }
-
+            redditors.add(new Redditor(userNames.get(currentUserIndex), commentHandler.getTitles(), commentHandler.getContent(), commentHandler.getUrls(), commentHandler.getTime()));
 
             if(userNames.size() > 1 && currentUserIndex == userNames.size() - 1) {
                 userCollectionPagerAdapter = new UserCollectionPagerAdapter(getSupportFragmentManager(), redditors);
