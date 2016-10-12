@@ -2,6 +2,8 @@ package com.example.rykim17.redditfriendsrss;
 
 import android.app.ActionBar;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -305,7 +307,7 @@ public class MainActivity extends AppCompatActivity {
                 title.set(i, titleStr);
 
                 String urlStr = url.get(i);
-                urlStr += "http://www.reddit.com";
+                urlStr = "http://www.reddit.com" + urlStr;
                 url.set(i, urlStr);
             }
         }
@@ -410,6 +412,8 @@ public class MainActivity extends AppCompatActivity {
 
     static class TitleAdapter extends ArrayAdapter<Comment> {
         private ArrayList<Comment> comments;
+        String title;
+        String urlStr;
 
         public TitleAdapter(Context context, int resource, ArrayList<Comment> comments) {
             super(context, resource, comments);
@@ -425,7 +429,8 @@ public class MainActivity extends AppCompatActivity {
                 v = vi.inflate(R.layout.comment_template, null);
             }
 
-            String title = comments.get(position).getTitle();
+            title = comments.get(position).getTitle();
+            urlStr = comments.get(position).getUrl();
 
             if (title != null) {
                 TextView tt = (TextView) v.findViewById(R.id.toptext);
@@ -439,9 +444,13 @@ public class MainActivity extends AppCompatActivity {
             v.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
+                    Intent intent = new Intent(getContext(), RedditView.class);
+                    intent.putExtra("url", urlStr);
+                    Log.d("lmao", urlStr);
+                    getContext().startActivity(intent);
                 }
             });
+
             return v;
         }
     }
