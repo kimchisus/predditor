@@ -156,36 +156,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    class TitleAdapter extends ArrayAdapter<String> {
-        private ArrayList<String> titles;
-
-        public TitleAdapter(Context context, int resource, ArrayList<String> titles) {
-            super(context, resource, titles);
-            this.titles = titles;
-        }
-
-        @NonNull
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            View v = convertView;
-            if (v == null) {
-                LayoutInflater vi = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                v = vi.inflate(R.layout.comment_template, null);
-            }
-
-            String title = titles.get(position);
-            if (title != null) {
-                TextView tt = (TextView) v.findViewById(R.id.toptext);
-                TextView bt = (TextView) v.findViewById(R.id.bottomtext);
-                if (tt != null) {
-                    tt.setText(title);
-                }
-            }
-            return v;
-        }
-    }
-
-
     class RedditUserCommentHandler extends DefaultHandler {
         private ArrayList<String> title;
         private ArrayList<String> content;
@@ -311,21 +281,39 @@ public class MainActivity extends AppCompatActivity {
         public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.user_template, container, false);
 
-            // Grab the object through the arguments you pass AND THEN POPULATE THE VIEW ACCORDINGLY
             Bundle args = getArguments();
             Redditor redditor = (Redditor)args.get("currentUser");
-            LinearLayout user_container = (LinearLayout)rootView.findViewById(R.id.scroll_view);
+            setListAdapter(new TitleAdapter(getActivity(), android.R.layout.simple_list_item_1, args.getStringArrayList("titles")));
+            return rootView;
+        }
+    }
 
-            ArrayList<String> titles = args.getStringArrayList("titles");
+    static class TitleAdapter extends ArrayAdapter<String> {
+        private ArrayList<String> titles;
 
-            for(int i = 0; i < titles.size(); i++) {
-                View commentView = inflater.inflate(R.layout.comment_template, container, false);
-                TextView topText = (TextView)commentView.findViewById(R.id.toptext);
-                topText.setText(titles.get(i));
-                user_container.addView(commentView);
+        public TitleAdapter(Context context, int resource, ArrayList<String> titles) {
+            super(context, resource, titles);
+            this.titles = titles;
+        }
+
+        @NonNull
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View v = convertView;
+            if (v == null) {
+                LayoutInflater vi = (LayoutInflater)getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                v = vi.inflate(R.layout.comment_template, null);
             }
 
-            return rootView;
+            String title = titles.get(position);
+            if (title != null) {
+                TextView tt = (TextView) v.findViewById(R.id.toptext);
+                TextView bt = (TextView) v.findViewById(R.id.bottomtext);
+                if (tt != null) {
+                    tt.setText(title);
+                }
+            }
+            return v;
         }
     }
 }
