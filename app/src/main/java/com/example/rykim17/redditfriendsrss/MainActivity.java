@@ -18,6 +18,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -34,6 +35,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -73,11 +75,13 @@ public class MainActivity extends AppCompatActivity {
 //    public class Redditor {
 //        private String userName;
 //        private ArrayList<String> titles;
+//        private ArrayList<String> contents;
 //        private ArrayList<String> URLs;
 //
-//        public Redditor(String userName, ArrayList<String> titles, ArrayList<String> urls) {
+//        public Redditor(String userName, ArrayList<String> titles, ArrayList<String> contents, ArrayList<String> urls) {
 //            this.userName = userName;
 //            this.titles = titles;
+//            this.contents = contents;
 //            this.URLs = urls;
 //        }
 //
@@ -89,6 +93,10 @@ public class MainActivity extends AppCompatActivity {
 //            return this.titles;
 //        }
 //
+//        public ArrayList<String> getContents() {
+//            return this.contents;
+//        }
+//
 //        public ArrayList<String> getURLs() {
 //            return this.URLs;
 //        }
@@ -97,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
 //            ArrayList<Comment> comments = new ArrayList<Comment>();
 //
 //            for(int i = 0; i < this.titles.size(); i++) {
-//                comments.add(new Comment(this.titles.get(i), this.URLs.get(i)));
+//                comments.add(new Comment(this.titles.get(i), this.contents.get(i), this.URLs.get(i)));
 //            }
 //
 //            return comments;
@@ -107,11 +115,13 @@ public class MainActivity extends AppCompatActivity {
     public class Redditor implements Parcelable {
         private String userName;
         private ArrayList<String> titles;
+        private ArrayList<String> contents;
         private ArrayList<String> URLs;
 
-        public Redditor(String userName, ArrayList<String> titles, ArrayList<String> urls) {
+        public Redditor(String userName, ArrayList<String> titles, ArrayList<String> contents, ArrayList<String> urls) {
             this.userName = userName;
             this.titles = titles;
+            this.contents = contents;
             this.URLs = urls;
         }
 
@@ -123,6 +133,10 @@ public class MainActivity extends AppCompatActivity {
             return this.titles;
         }
 
+        public ArrayList<String> getContents() {
+            return this.contents;
+        }
+
         public ArrayList<String> getURLs() {
             return this.URLs;
         }
@@ -131,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
             ArrayList<Comment> comments = new ArrayList<Comment>();
 
             for(int i = 0; i < this.titles.size(); i++) {
-                comments.add(new Comment(this.titles.get(i), this.URLs.get(i)));
+                comments.add(new Comment(this.titles.get(i), this.contents.get(i), this.URLs.get(i)));
             }
 
             return comments;
@@ -144,6 +158,12 @@ public class MainActivity extends AppCompatActivity {
                 in.readList(titles, String.class.getClassLoader());
             } else {
                 titles = null;
+            }
+            if (in.readByte() == 0x01) {
+                contents = new ArrayList<String>();
+                in.readList(contents, String.class.getClassLoader());
+            } else {
+                contents = null;
             }
             if (in.readByte() == 0x01) {
                 URLs = new ArrayList<String>();
@@ -166,6 +186,12 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 dest.writeByte((byte) (0x01));
                 dest.writeList(titles);
+            }
+            if (contents == null) {
+                dest.writeByte((byte) (0x00));
+            } else {
+                dest.writeByte((byte) (0x01));
+                dest.writeList(contents);
             }
             if (URLs == null) {
                 dest.writeByte((byte) (0x00));
@@ -191,17 +217,19 @@ public class MainActivity extends AppCompatActivity {
 
     public class Comment {
         String title;
+        String content;
         String url;
 
-        public Comment(String title, String url) {
+        public Comment(String title, String content, String url) {
             this.title = title;
+            this.content = content;
             this.url = url;
         }
 
         public String getTitle() {
             return this.title;
         }
-
+        public String getContent() { return this.content; }
         public String getUrl() {
             return this.url;
         }
@@ -249,15 +277,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            ArrayList<String> titles = new ArrayList<String>();
-            ArrayList<String> urls = new ArrayList<String>();
-
-            for(int i = 0; i < commentHandler.getTitles().size(); i++) {
-                titles.add(commentHandler.getTitles().get(i));
-                urls.add(commentHandler.getUrls().get(i));
-            }
-
-            redditors.add(new Redditor("barbell-kun", titles, urls));
+            redditors.add(new Redditor("ReallyRickAstley", commentHandler.getTitles(), commentHandler.getContent(), commentHandler.getUrls()));
             userCollectionPagerAdapter = new UserCollectionPagerAdapter(getSupportFragmentManager(), redditors);
             viewPager = (ViewPager) findViewById(R.id.pager);
             viewPager.setAdapter(userCollectionPagerAdapter);
@@ -272,22 +292,22 @@ public class MainActivity extends AppCompatActivity {
         private StringBuilder stringBuilder;
         private boolean inTitle;
         private boolean inContent;
-        private boolean inUrl;
 
         public RedditUserCommentHandler() {
             stringBuilder = new StringBuilder();
             title = new ArrayList<String>();
             content = new ArrayList<String>();
             url = new ArrayList<String>();
+
         }
 
         public ArrayList<String> getTitles() {
             return this.title;
         }
-
         public ArrayList<String> getUrls() {
             return this.url;
         }
+        public ArrayList<String> getContent() { return this.content; }
 
         @Override
         public void startDocument() throws SAXException {
@@ -307,7 +327,7 @@ public class MainActivity extends AppCompatActivity {
                 title.set(i, titleStr);
 
                 String urlStr = url.get(i);
-                urlStr = "http://www.reddit.com" + urlStr;
+                urlStr = "http://www.reddit.com" + urlStr + "?context=3";
                 url.set(i, urlStr);
             }
         }
@@ -372,8 +392,7 @@ public class MainActivity extends AppCompatActivity {
         public Fragment getItem(int position) {
             Fragment fragment = new UserFragment();
             Bundle args = new Bundle();
-            args.putStringArrayList("titles", redditors.get(position).getTitles());
-            args.putParcelable("redditorObject", redditors.get(position));
+            args.putParcelable("redditor", redditors.get(position));
             args.putInt(UserFragment.ARG_OBJECT, position);
             fragment.setArguments(args);
             return fragment;
@@ -403,8 +422,7 @@ public class MainActivity extends AppCompatActivity {
         public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.user_template, container, false);
             Bundle args = getArguments();
-            Redditor redditor = args.getParcelable("redditorObject");
-
+            Redditor redditor = args.getParcelable("redditor");
             setListAdapter(new TitleAdapter(getActivity(), R.layout.user_template, redditor.getComments()));
             return rootView;
         }
@@ -413,6 +431,7 @@ public class MainActivity extends AppCompatActivity {
     static class TitleAdapter extends ArrayAdapter<Comment> {
         private ArrayList<Comment> comments;
         String title;
+        String content;
         String urlStr;
 
         public TitleAdapter(Context context, int resource, ArrayList<Comment> comments) {
@@ -430,6 +449,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             title = comments.get(position).getTitle();
+            content = comments.get(position).getContent();
             urlStr = comments.get(position).getUrl();
 
             if (title != null) {
@@ -437,7 +457,12 @@ public class MainActivity extends AppCompatActivity {
                 TextView bt = (TextView) v.findViewById(R.id.bottomtext);
 
                 if (tt != null) {
-                    tt.setText(title);
+                    content = Html.fromHtml(content).toString();
+                    tt.setText(content);
+                }
+
+                if (bt != null) {
+                    bt.setText(title);
                 }
             }
 
@@ -446,7 +471,6 @@ public class MainActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     Intent intent = new Intent(getContext(), RedditView.class);
                     intent.putExtra("url", urlStr);
-                    Log.d("lmao", urlStr);
                     getContext().startActivity(intent);
                 }
             });

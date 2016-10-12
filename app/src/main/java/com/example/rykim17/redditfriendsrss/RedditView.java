@@ -14,7 +14,6 @@ public class RedditView extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         Intent intent = getIntent();
         String url = intent.getStringExtra("url");
-        Toast.makeText(this, url, Toast.LENGTH_SHORT).show();
         WebView webView = new WebView(this);
         setContentView(webView);
         webView.loadUrl(url);
