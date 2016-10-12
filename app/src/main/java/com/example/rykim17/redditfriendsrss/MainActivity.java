@@ -51,7 +51,9 @@ public class MainActivity extends AppCompatActivity {
     ViewPager viewPager;
     SAXParser saxParser;
     ArrayList<Redditor> redditors = new ArrayList<Redditor>();
-
+    ArrayList<String> userNames = new ArrayList<String>();
+    int currentUserIndex;
+    RssProcessingTask rssProcessingTask;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,12 +66,17 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().setTitle("Predditor");
         getSupportActionBar().setDisplayShowTitleEnabled(true); //optional
 
+        userNames.add("GovSchwarzenegger");
+        userNames.add("ReallyRickAstley");
+
+        currentUserIndex = 0;
 
         // TODO: Grab all the data using the sax parser, iterate through the usernames
-        RssProcessingTask rssProcessingTask = new RssProcessingTask();
+        rssProcessingTask = new RssProcessingTask();
         rssProcessingTask.execute();
     }
 
+    // Don't delete this, this is what you use to convert to parcelable.
 //    public class Redditor {
 //        private String userName;
 //        private ArrayList<String> titles;
@@ -126,19 +133,15 @@ public class MainActivity extends AppCompatActivity {
         public String getUserName() {
             return this.userName;
         }
-
         public ArrayList<String> getTitles() {
             return this.titles;
         }
-
         public ArrayList<String> getContents() {
             return this.contents;
         }
-
         public ArrayList<String> getURLs() {
             return this.URLs;
         }
-
         public ArrayList<Comment> getComments() {
             ArrayList<Comment> comments = new ArrayList<Comment>();
 
@@ -212,7 +215,6 @@ public class MainActivity extends AppCompatActivity {
             }
         };
     }
-
     public class Comment {
         String title;
         String content;
@@ -238,20 +240,24 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
             URL url = null;
             HttpURLConnection connection = null;
 
-            try {
-                saxParser = saxParserFactory.newSAXParser();
-            } catch (ParserConfigurationException e) {
-                e.printStackTrace();
-            } catch (SAXException e) {
-                e.printStackTrace();
+            if(saxParser == null) {
+                SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
+
+                try {
+                    saxParser = saxParserFactory.newSAXParser();
+                } catch (ParserConfigurationException e) {
+                    e.printStackTrace();
+                } catch (SAXException e) {
+                    e.printStackTrace();
+                }
             }
 
+
             try {
-                url = new URL("https://www.reddit.com/user/ReallyRickAstley/comments/.rss");
+                url = new URL("https://www.reddit.com/user/" + userNames.get(currentUserIndex) + "/comments/.rss");
                 connection = (HttpURLConnection)url.openConnection();
             } catch (MalformedURLException e) {
                 e.printStackTrace();
@@ -275,16 +281,19 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+            redditors.add(new Redditor(userNames.get(currentUserIndex), commentHandler.getTitles(), commentHandler.getContent(), commentHandler.getUrls()));
 
-
-            // Todo: Get a list of saved usernames to get a list of redditor objects.
-            redditors.add(new Redditor("ReallyRickAstley", commentHandler.getTitles(), commentHandler.getContent(), commentHandler.getUrls()));
-
-
-            userCollectionPagerAdapter = new UserCollectionPagerAdapter(getSupportFragmentManager(), redditors);
-            viewPager = (ViewPager) findViewById(R.id.pager);
-            viewPager.setAdapter(userCollectionPagerAdapter);
+            if(userNames.size() > 1 && currentUserIndex == userNames.size() - 1) {
+                userCollectionPagerAdapter = new UserCollectionPagerAdapter(getSupportFragmentManager(), redditors);
+                viewPager = (ViewPager) findViewById(R.id.pager);
+                viewPager.setAdapter(userCollectionPagerAdapter);
+            } else {
+                currentUserIndex++;
+                rssProcessingTask = new RssProcessingTask();
+                rssProcessingTask.execute();
+            }
         }
+
     }
 
     class RedditUserCommentHandler extends DefaultHandler {
@@ -326,7 +335,7 @@ public class MainActivity extends AppCompatActivity {
 
             for(int i = 0; i < title.size(); i++) {
                 String titleStr = title.get(i);
-                titleStr = titleStr.replace("/u/barbell-kun on", "").trim();
+                titleStr = titleStr.replace("/u/ReallyRickAstley on", "").trim();
                 title.set(i, titleStr);
 
                 String urlStr = url.get(i);
@@ -478,18 +487,7 @@ public class MainActivity extends AppCompatActivity {
                     getContext().startActivity(intent);
                 }
             });
-
-            v.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View v, boolean hasFocus) {
-                    if(hasFocus) {
-                        v.setBackgroundColor(Color.LTGRAY);
-                    } else {
-                        v.setBackgroundColor(Color.WHITE);
-                    }
-                }
-            });
-
+            
             return v;
         }
     }
