@@ -4,6 +4,7 @@
     android:layout_height="?android:attr/listPreferredItemHeight"
     android:padding="6dip"
     android:orientation="horizontal">
+
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="0dip"

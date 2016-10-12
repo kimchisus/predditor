@@ -9,6 +9,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.app.ListFragment;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -39,8 +41,9 @@ import javax.xml.parsers.SAXParserFactory;
 public class MainActivity extends AppCompatActivity {
     UserCollectionPagerAdapter userCollectionPagerAdapter;
     ViewPager viewPager;
-    private SAXParser saxParser;
-    private ListView commentPicker;
+    SAXParser saxParser;
+    String[] userNames = {"barbell-kun", "rykimchi"};
+    ArrayList<Redditor> redditors = new ArrayList<Redditor>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,68 +57,57 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().setTitle("Predditor");
         getSupportActionBar().setDisplayShowTitleEnabled(true); //optional
 
-        userCollectionPagerAdapter = new UserCollectionPagerAdapter(getSupportFragmentManager());
-        viewPager = (ViewPager) findViewById(R.id.pager);
-        viewPager.setAdapter(userCollectionPagerAdapter);
+
+        // TODO: Grab all the data using the sax parser, iterate through the usernames
+        // Grab all comments then populate the list according according to the User objects you pass.
+        // ALL DONE VOILA!~
+        RssProcessingTask rssProcessingTask = new RssProcessingTask();
+        rssProcessingTask.execute();
     }
 
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.action_bar_menu, menu);
-        return super.onPrepareOptionsMenu(menu);
-    }
-    public class UserCollectionPagerAdapter extends FragmentStatePagerAdapter {
-        public UserCollectionPagerAdapter(FragmentManager fm) {
-            super(fm);
+    public class Redditor {
+        private String userName;
+        private ArrayList<String> titles;
+
+        public Redditor(String userName, ArrayList<String> titles) {
+            this.userName = userName;
+            this.titles = titles;
         }
 
-        @Override
-        public Fragment getItem(int position) {
-            Fragment fragment = new UserFragment();
-            Bundle args = new Bundle();
-            args.putInt(UserFragment.ARG_OBJECT, position + 1);
-            fragment.setArguments(args);
-            return fragment;
+        public String getUserName() {
+            return this.userName;
         }
 
-        @Override
-        public int getCount() {
-            return 100;
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            return "/u/ " + (position + 1);
+        public ArrayList<String> getTitles() {
+            return this.titles;
         }
     }
 
-    public static class UserFragment extends Fragment {
-        public static final String ARG_OBJECT = "object";
+    public class Comment {
+        private String title;
+        private String date;
+        private String subReddit;
+        private String context;
+        private String url;
 
-        @Nullable
-        @Override
-        public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.user_template, container, false);
-
-            Bundle args = getArguments();
-
-
-//            this.commentPicker = (ListView) findViewById(R.id.commentPicker);
-//            RssProcessingTask rssProcessingTask = new RssProcessingTask();
-//            rssProcessingTask.execute();
-
-            ((TextView) rootView.findViewById(android.R.id.text1)).setText(Integer.toString(args.getInt(ARG_OBJECT)));
-            return rootView;
+        public Comment(String title, String date, String subReddit, String context, String url) {
+            this.title = title;
+            this.date = date;
+            this.subReddit = subReddit;
+            this.context = context;
+            this.url = url;
         }
     }
 
 
-        class RssProcessingTask extends AsyncTask<Void, Void, Void> {
+    class RssProcessingTask extends AsyncTask<Void, Void, Void> {
         private RedditUserCommentHandler commentHandler;
 
         @Override
         protected Void doInBackground(Void... voids) {
             SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
+            URL url = null;
+            HttpURLConnection connection = null;
 
             try {
                 saxParser = saxParserFactory.newSAXParser();
@@ -124,9 +116,6 @@ public class MainActivity extends AppCompatActivity {
             } catch (SAXException e) {
                 e.printStackTrace();
             }
-
-            URL url = null;
-            HttpURLConnection connection = null;
 
             try {
                 url = new URL("https://www.reddit.com/user/barbell-kun/comments/.rss");
@@ -146,15 +135,24 @@ public class MainActivity extends AppCompatActivity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
             return null;
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            ListView commentPicker = MainActivity.this.commentPicker;
-            ArrayAdapter<String> titleAdapter = new TitleAdapter(MainActivity.this, R.layout.comment_template, commentHandler.getTitles());
-            commentPicker.setAdapter(titleAdapter);
+            ArrayList<String> titles = new ArrayList<String>();
+
+            for(int i = 0; i < commentHandler.getTitles().size(); i++) {
+                titles.add(commentHandler.getTitles().get(i));
+            }
+
+            redditors.add(new Redditor("barbell-kun", titles));
+
+            userCollectionPagerAdapter = new UserCollectionPagerAdapter(getSupportFragmentManager(), redditors);
+            viewPager = (ViewPager) findViewById(R.id.pager);
+            viewPager.setAdapter(userCollectionPagerAdapter);
         }
     }
 
@@ -204,16 +202,15 @@ public class MainActivity extends AppCompatActivity {
         public ArrayList<String> getTitles() {
             return this.title;
         }
+
         @Override
         public void startDocument() throws SAXException {
             super.startDocument();
-            Log.d("RAWR", "startDocument()");
         }
 
         @Override
         public void endDocument() throws SAXException {
             super.endDocument();
-            Log.d("RAWR", "endDocument()");
 
             // The first element is just for 'overview for:'
             title.remove(0);
@@ -264,6 +261,71 @@ public class MainActivity extends AppCompatActivity {
             if(inTitle || inContent) {
                 stringBuilder.append(ch, start, length);
             }
+        }
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.action_bar_menu, menu);
+        return super.onPrepareOptionsMenu(menu);
+    }
+    public class UserCollectionPagerAdapter extends FragmentStatePagerAdapter {
+        ArrayList<Redditor> redditors;
+
+        public UserCollectionPagerAdapter(FragmentManager fm, ArrayList<Redditor> redditors) {
+            super(fm);
+            this.redditors = redditors;
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            Fragment fragment = new UserFragment();
+            Bundle args = new Bundle();
+            args.putStringArrayList("titles", redditors.get(position).getTitles());
+            args.putInt(UserFragment.ARG_OBJECT, position + 1);
+            fragment.setArguments(args);
+            return fragment;
+        }
+
+        @Override
+        public void finishUpdate(ViewGroup container) {
+            super.finishUpdate(container);
+        }
+
+        @Override
+        public int getCount() {
+            return redditors.size();
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return "/u/ " + redditors.get(position).getUserName();
+        }
+    }
+
+    public static class UserFragment extends ListFragment {
+        public static final String ARG_OBJECT = "object";
+
+        @Nullable
+        @Override
+        public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+            View rootView = inflater.inflate(R.layout.user_template, container, false);
+
+            // Grab the object through the arguments you pass AND THEN POPULATE THE VIEW ACCORDINGLY
+            Bundle args = getArguments();
+            Redditor redditor = (Redditor)args.get("currentUser");
+            LinearLayout user_container = (LinearLayout)rootView.findViewById(R.id.scroll_view);
+
+            ArrayList<String> titles = args.getStringArrayList("titles");
+
+            for(int i = 0; i < titles.size(); i++) {
+                View commentView = inflater.inflate(R.layout.comment_template, container, false);
+                TextView topText = (TextView)commentView.findViewById(R.id.toptext);
+                topText.setText(titles.get(i));
+                user_container.addView(commentView);
+            }
+
+            return rootView;
         }
     }
 }
