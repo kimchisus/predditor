@@ -25,6 +25,7 @@ import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -305,6 +306,7 @@ public class MainActivity extends AppCompatActivity {
 
                 String urlStr = url.get(i);
                 urlStr += "http://www.reddit.com";
+                url.set(i, urlStr);
             }
         }
 
@@ -428,10 +430,18 @@ public class MainActivity extends AppCompatActivity {
             if (title != null) {
                 TextView tt = (TextView) v.findViewById(R.id.toptext);
                 TextView bt = (TextView) v.findViewById(R.id.bottomtext);
+
                 if (tt != null) {
                     tt.setText(title);
                 }
             }
+
+            v.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                }
+            });
             return v;
         }
     }
