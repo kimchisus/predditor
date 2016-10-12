@@ -31,6 +31,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.w3c.dom.Text;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -73,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
         userNames.add("GovSchwarzenegger");
         userNames.add("ReallyRickAstley");
         userNames.add("rykimchi");
+        userNames.add("redditSadly");
         currentUserIndex = 0;
 
         // Grab all the stuff on first load because o UX reasons.
@@ -85,12 +87,12 @@ public class MainActivity extends AppCompatActivity {
 //        private String userName;
 //        ArrayList<Comment> comments;
 //
-//        public Redditor(String userName, ArrayList<String> titles, ArrayList<String> contents, ArrayList<String> urls, ArrayList<String> times) {
+//        public Redditor(String userName, ArrayList<String> titles, ArrayList<String> contents, ArrayList<String> urls, ArrayList<String> times, ArrayList<String> subReddits) {
 //            comments = new ArrayList<Comment>();
 //            this.userName = userName;
 //
 //            for(int i = 0; i < titles.size(); i++) {
-//                this.comments.add(new Comment(titles.get(i), contents.get(i), urls.get(i), times.get(i)));
+//                this.comments.add(new Comment(titles.get(i), contents.get(i), urls.get(i), times.get(i), subReddits.get(i)));
 //            }
 //        }
 //
@@ -98,17 +100,16 @@ public class MainActivity extends AppCompatActivity {
 //        public ArrayList<Comment> getComments() { return this.comments; }
 //    }
 
-
     public class Redditor implements Parcelable {
         private String userName;
         ArrayList<Comment> comments;
 
-        public Redditor(String userName, ArrayList<String> titles, ArrayList<String> contents, ArrayList<String> urls, ArrayList<String> times) {
+        public Redditor(String userName, ArrayList<String> titles, ArrayList<String> contents, ArrayList<String> urls, ArrayList<String> times, ArrayList<String> subReddits) {
             comments = new ArrayList<Comment>();
             this.userName = userName;
 
             for(int i = 0; i < titles.size(); i++) {
-                this.comments.add(new Comment(titles.get(i), contents.get(i), urls.get(i), times.get(i)));
+                this.comments.add(new Comment(titles.get(i), contents.get(i), urls.get(i), times.get(i), subReddits.get(i)));
             }
         }
 
@@ -154,19 +155,19 @@ public class MainActivity extends AppCompatActivity {
             }
         };
     }
-
-
     public class Comment implements Parcelable {
-        String title;
-        String content;
-        String url;
-        String time;
+        private String title;
+        private String content;
+        private String url;
+        private String time;
+        private String subReddit;
 
-        public Comment(String title, String content, String url, String time) {
+        public Comment(String title, String content, String url, String time, String subReddit) {
             this.title = title;
             this.content = content;
             this.url = url;
             this.time = time;
+            this.subReddit = subReddit;
         }
 
         public String getTitle() {
@@ -177,12 +178,14 @@ public class MainActivity extends AppCompatActivity {
             return this.url;
         }
         public String getTime() { return this.time; }
+        public String getSubReddit() { return this.subReddit; }
 
         protected Comment(Parcel in) {
             title = in.readString();
             content = in.readString();
             url = in.readString();
             time = in.readString();
+            subReddit = in.readString();
         }
 
         @Override
@@ -196,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
             dest.writeString(content);
             dest.writeString(url);
             dest.writeString(time);
+            dest.writeString(subReddit);
         }
 
         @SuppressWarnings("unused")
@@ -213,16 +217,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
 //    public class Comment {
-//        String title;
-//        String content;
-//        String url;
-//        String time;
+//        private String title;
+//        private String content;
+//        private String url;
+//        private String time;
+//        private String subReddit;
 //
-//        public Comment(String title, String content, String url, String time) {
+//        public Comment(String title, String content, String url, String time, String subReddit) {
 //            this.title = title;
 //            this.content = content;
 //            this.url = url;
 //            this.time = time;
+//            this.subReddit = subReddit;
 //        }
 //
 //        public String getTitle() {
@@ -233,6 +239,7 @@ public class MainActivity extends AppCompatActivity {
 //            return this.url;
 //        }
 //        public String getTime() { return this.time; }
+//        public String getSubReddit() { return this.subReddit; }
 //    }
 
     class RssProcessingTask extends AsyncTask<Void, Void, Void> {
@@ -281,7 +288,8 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
 
-            redditors.add(new Redditor(userNames.get(currentUserIndex), commentHandler.getTitles(), commentHandler.getContent(), commentHandler.getUrls(), commentHandler.getTime()));
+            redditors.add(new Redditor(userNames.get(currentUserIndex), commentHandler.getTitles(),
+                    commentHandler.getContent(), commentHandler.getUrls(), commentHandler.getTime(), commentHandler.getSubreddit()));
 
             if(userNames.size() > 1 && currentUserIndex == userNames.size() - 1) {
                 userCollectionPagerAdapter = new UserCollectionPagerAdapter(getSupportFragmentManager(), redditors);
@@ -293,11 +301,10 @@ public class MainActivity extends AppCompatActivity {
                 rssProcessingTask.execute();
             }
         }
-
     }
 
     class RedditUserCommentHandler extends DefaultHandler {
-        private ArrayList<String> title, content, url, time;
+        private ArrayList<String> title, content, url, time, subreddit;
         private StringBuilder stringBuilder;
         private boolean inTitle, inContent, inTime;
 
@@ -307,6 +314,7 @@ public class MainActivity extends AppCompatActivity {
             content = new ArrayList<String>();
             url = new ArrayList<String>();
             time = new ArrayList<String>();
+            subreddit = new ArrayList<String>();
         }
 
         public ArrayList<String> getTitles() {
@@ -317,6 +325,7 @@ public class MainActivity extends AppCompatActivity {
         }
         public ArrayList<String> getContent() { return this.content; }
         public ArrayList<String> getTime() { return this.time; }
+        public ArrayList<String> getSubreddit() { return this.subreddit; }
 
         @Override
         public void startDocument() throws SAXException {
@@ -330,6 +339,7 @@ public class MainActivity extends AppCompatActivity {
             // The first for these are just data for the user. Un-needed.
             title.remove(0);
             time.remove(0);
+            subreddit.remove(0);
 
             // Format the xml stuff.
             for(int i = 0; i < title.size(); i++) {
@@ -347,6 +357,10 @@ public class MainActivity extends AppCompatActivity {
                 String contentStr = content.get(i);
                 contentStr = Html.fromHtml(contentStr).toString();
                 content.set(i, contentStr);
+
+                // Format the subreddit name
+                String subRedditStr = subreddit.get(i);
+                subreddit.set(i, subRedditStr);
             }
         }
 
@@ -368,6 +382,11 @@ public class MainActivity extends AppCompatActivity {
                     }
                 case "updated":
                     inTime = true;
+                    break;
+                case "category":
+                    if(attributes.getValue("label").length() > 3 && attributes.getValue("label").substring(0,3).equals("/r/")) {
+                        subreddit.add(attributes.getValue("label"));
+                    }
                     break;
             }
         }
@@ -460,6 +479,7 @@ public class MainActivity extends AppCompatActivity {
         String content;
         String urlStr;
         String time;
+        String subReddit;
 
         public TitleAdapter(Context context, int resource, ArrayList<Comment> comments) {
             super(context, resource, comments);
@@ -479,14 +499,20 @@ public class MainActivity extends AppCompatActivity {
             content = comments.get(position).getContent();
             urlStr = comments.get(position).getUrl();
             time = comments.get(position).getTime();
+            subReddit = comments.get(position).getSubReddit();
 
             if (title != null) {
-                TextView topTime = (TextView) v.findViewById(R.id.topTime);
-                TextView tt = (TextView) v.findViewById(R.id.toptext);
-                TextView bt = (TextView) v.findViewById(R.id.bottomtext);
+                TextView topTime = (TextView)v.findViewById(R.id.topTime);
+                TextView topSubreddit = (TextView)v.findViewById(R.id.topSubreddit);
+                TextView tt = (TextView)v.findViewById(R.id.toptext);
+                TextView bt = (TextView)v.findViewById(R.id.bottomtext);
 
                 if(topTime != null) {
                     topTime.setText(time);
+                }
+
+                if(topSubreddit != null) {
+                    topSubreddit.setText(subReddit);
                 }
 
                 if (tt != null) {
