@@ -225,7 +225,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             try {
-                url = new URL("https://www.reddit.com/user/barbell-kun/comments/.rss");
+                url = new URL("https://www.reddit.com/user/ReallyRickAstley/comments/.rss");
                 connection = (HttpURLConnection)url.openConnection();
             } catch (MalformedURLException e) {
                 e.printStackTrace();
