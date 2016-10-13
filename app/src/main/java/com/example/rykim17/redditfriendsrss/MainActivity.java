@@ -72,9 +72,10 @@ public class MainActivity extends AppCompatActivity {
         redditors = new ArrayList<Redditor>();
         userNames = new ArrayList<String>();
         userNames.add("GovSchwarzenegger");
-        userNames.add("ReallyRickAstley");
-        userNames.add("rykimchi");
-        userNames.add("redditSadly");
+        userNames.add("thisisbillgates");
+        userNames.add("mistersavage");
+//        userNames.add("ReallyRickAstley");
+//        userNames.add("rykimchi");
         currentUserIndex = 0;
 
         // Grab all the stuff on first load because o UX reasons.
