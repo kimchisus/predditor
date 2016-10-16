@@ -6,21 +6,22 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 public class RedditView extends AppCompatActivity {
+    WebView webView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        try {
-            Intent intent = getIntent();
-            String url = intent.getStringExtra("url");
-            WebView webView = new WebView(this);
-            setContentView(webView);
-            webView.loadUrl(url);
-        } catch(Exception e) {
-            Log.d("test", e.toString());
-        }
+        setContentView(R.layout.activity_reddit_view);
+        webView = (WebView)findViewById(R.id.activity_reddit_view);
+        webView.setWebViewClient(new WebViewClient());
+
+        Intent intent = getIntent();
+        String url = intent.getStringExtra("url");
+        setContentView(webView);
+        webView.loadUrl(url);
     }
 }

@@ -74,8 +74,8 @@ public class MainActivity extends AppCompatActivity {
         userNames.add("GovSchwarzenegger");
         userNames.add("thisisbillgates");
         userNames.add("mistersavage");
-//        userNames.add("ReallyRickAstley");
-//        userNames.add("rykimchi");
+        userNames.add("ReallyRickAstley");
+        userNames.add("rykimchi");
         currentUserIndex = 0;
 
         // Grab all the stuff on first load because o UX reasons.
