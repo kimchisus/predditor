@@ -23,6 +23,8 @@ import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -57,6 +59,12 @@ public class MainActivity extends AppCompatActivity {
     RssProcessingTask rssProcessingTask;
 
     @Override
+    protected boolean onPrepareOptionsPanel(View view, Menu menu) {
+        menu.clear();
+        return super.onPrepareOptionsPanel(view, menu);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -68,19 +76,35 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().setTitle("Predditor");
         getSupportActionBar().setDisplayShowTitleEnabled(true);
 
+
+
         // Init variables to be used
         redditors = new ArrayList<Redditor>();
         userNames = new ArrayList<String>();
         userNames.add("GovSchwarzenegger");
         userNames.add("thisisbillgates");
         userNames.add("mistersavage");
-//        userNames.add("ReallyRickAstley");
-//        userNames.add("rykimchi");
         currentUserIndex = 0;
 
         // Grab all the stuff on first load because o UX reasons.
         rssProcessingTask = new RssProcessingTask();
         rssProcessingTask.execute();
+    }
+
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case R.id.addUser:
+                Toast.makeText(this, "Add user", Toast.LENGTH_SHORT).show();
+                return true;
+            case R.id.settings:
+                Toast.makeText(this, "Settings", Toast.LENGTH_SHORT).show();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
 //    DON'T REMOVE THIS BECAUSE IT IS USED TO CONVERT TO PARCELABLE

@@ -11,6 +11,12 @@ import android.widget.Toast;
 
 public class RedditView extends AppCompatActivity {
     WebView webView;
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
