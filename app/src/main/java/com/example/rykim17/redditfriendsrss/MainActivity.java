@@ -29,6 +29,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -60,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<String> userNames;
     int currentUserIndex;
     RssProcessingTask rssProcessingTask;
+    Button editRedditors;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,9 +79,12 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = getPreferences(Context.MODE_PRIVATE);
         String stringRedditors = sharedPreferences.getString("redditors", "");
         viewPager = (ViewPager) findViewById(R.id.pager);
+        editRedditors = (Button) findViewById(R.id.btnAddRedditors);
+        ClickHandler clickHandler = new ClickHandler();
+
+        editRedditors.setOnClickListener(clickHandler);
 
         if(!stringRedditors.equals("")) {
-
             userNames = new ArrayList<String>(Arrays.asList(stringRedditors.split(",")));
             redditors = new ArrayList<Redditor>();
             currentUserIndex = 0;
@@ -92,6 +97,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public class ClickHandler implements View.OnClickListener {
+        @Override
+        public void onClick(View v) {
+            handleView(v.getId());
+        }
+    }
+
     @Override
     protected boolean onPrepareOptionsPanel(View view, Menu menu) {
         menu.clear();
@@ -100,17 +112,28 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()) {
+        return handleView(item.getItemId());
+    }
+
+    public boolean handleView(int id) {
+        boolean result = true;
+
+        switch(id) {
+            case R.id.btnAddRedditors:
             case R.id.addUser:
-                Intent i = new Intent(this, Redditors.class);
-                startActivity(i);
-                return true;
+                openEditRedditors();
+                break;
             case R.id.settings:
                 Toast.makeText(this, "Settings", Toast.LENGTH_SHORT).show();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+                break;
         }
+
+        return result;
+    }
+
+    public void openEditRedditors() {
+        Intent i = new Intent(this, Redditors.class);
+        startActivity(i);
     }
 
 //    DON'T REMOVE THIS BECAUSE IT IS USED TO CONVERT TO PARCELABLE
