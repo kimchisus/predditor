@@ -17,7 +17,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".RedditView"></activity>
+        <activity android:name=".RedditView" />
+        <activity android:name=".Redditors"></activity>
     </application>
 
 </manifest>

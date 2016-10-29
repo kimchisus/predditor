@@ -3,6 +3,7 @@ package com.example.rykim17.redditfriendsrss;
 import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -30,6 +31,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,6 +46,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -59,12 +62,6 @@ public class MainActivity extends AppCompatActivity {
     RssProcessingTask rssProcessingTask;
 
     @Override
-    protected boolean onPrepareOptionsPanel(View view, Menu menu) {
-        menu.clear();
-        return super.onPrepareOptionsPanel(view, menu);
-    }
-
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -76,28 +73,37 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().setTitle("Predditor");
         getSupportActionBar().setDisplayShowTitleEnabled(true);
 
+        // Init variables.
+        SharedPreferences sharedPreferences = getPreferences(Context.MODE_PRIVATE);
+        String stringRedditors = sharedPreferences.getString("redditors", "");
+        viewPager = (ViewPager) findViewById(R.id.pager);
 
+        if(!stringRedditors.equals("")) {
 
-        // Init variables to be used
-        redditors = new ArrayList<Redditor>();
-        userNames = new ArrayList<String>();
-        userNames.add("GovSchwarzenegger");
-        userNames.add("thisisbillgates");
-        userNames.add("mistersavage");
-        currentUserIndex = 0;
-
-        // Grab all the stuff on first load because o UX reasons.
-        rssProcessingTask = new RssProcessingTask();
-        rssProcessingTask.execute();
+            userNames = new ArrayList<String>(Arrays.asList(stringRedditors.split(",")));
+            redditors = new ArrayList<Redditor>();
+            currentUserIndex = 0;
+            rssProcessingTask = new RssProcessingTask();
+            rssProcessingTask.execute();
+        } else {
+            viewPager.setVisibility(View.GONE);
+            RelativeLayout noRedditors = (RelativeLayout)findViewById(R.id.noRedditors);
+            noRedditors.setVisibility(View.VISIBLE);
+        }
     }
 
-
+    @Override
+    protected boolean onPrepareOptionsPanel(View view, Menu menu) {
+        menu.clear();
+        return super.onPrepareOptionsPanel(view, menu);
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
             case R.id.addUser:
-                Toast.makeText(this, "Add user", Toast.LENGTH_SHORT).show();
+                Intent i = new Intent(this, Redditors.class);
+                startActivity(i);
                 return true;
             case R.id.settings:
                 Toast.makeText(this, "Settings", Toast.LENGTH_SHORT).show();
@@ -316,9 +322,8 @@ public class MainActivity extends AppCompatActivity {
             redditors.add(new Redditor(userNames.get(currentUserIndex), commentHandler.getTitles(),
                     commentHandler.getContent(), commentHandler.getUrls(), commentHandler.getTime(), commentHandler.getSubreddit()));
 
-            if(userNames.size() > 1 && currentUserIndex == userNames.size() - 1) {
+            if(currentUserIndex == userNames.size() - 1) {
                 userCollectionPagerAdapter = new UserCollectionPagerAdapter(getSupportFragmentManager(), redditors);
-                viewPager = (ViewPager) findViewById(R.id.pager);
                 viewPager.setAdapter(userCollectionPagerAdapter);
             } else {
                 currentUserIndex++;
