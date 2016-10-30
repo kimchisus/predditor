@@ -23,7 +23,6 @@ public class Settings extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
-        // Toolbar stuff because it doesn't work by default WHYYYYY?! FUUUUUUU~
         Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(myToolbar);
         getSupportActionBar().setIcon(R.drawable.snoo);

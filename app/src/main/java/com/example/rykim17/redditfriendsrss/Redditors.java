@@ -1,5 +1,6 @@
 package com.example.rykim17.redditfriendsrss;
 
+import android.app.DialogFragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -8,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -18,7 +20,7 @@ import java.util.ArrayList;
 
 public class Redditors extends AppCompatActivity {
     ArrayList<String> redditors;
-    AlertDialog addDialog;
+    DialogFragment addRedditor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,14 +43,14 @@ public class Redditors extends AppCompatActivity {
             // Show list view
         }
 
-        initDialog();
+        addRedditor = new DialogAddRedditor();
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
             case R.id.addUser:
-                addDialog.show();
+                addRedditor.show(getFragmentManager(), "Add Redditor");
                 break;
         }
 
@@ -60,30 +62,5 @@ public class Redditors extends AppCompatActivity {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.redditors_menu, menu);
         return super.onCreateOptionsMenu(menu);
-    }
-
-    public void initDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Add Redditor");
-        EditText input = new EditText(this);
-
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
-        builder.setView(input);
-
-        builder.setPositiveButton("Add", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Toast.makeText(Redditors.this, "Added!", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-
-        addDialog = builder.create();
     }
 }
