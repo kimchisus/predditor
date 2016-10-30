@@ -72,6 +72,7 @@ public class Settings extends AppCompatActivity {
         editor.putInt("fontSize", Integer.parseInt(fontSize.getSelectedItem().toString()));
         editor.putBoolean("isDescending", getOrderByValue());
         editor.commit();
+        setResult(42);
         finish();
     }
 

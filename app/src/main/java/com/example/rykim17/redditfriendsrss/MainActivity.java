@@ -1,6 +1,7 @@
 package com.example.rykim17.redditfriendsrss;
 
 import android.app.ActionBar;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -72,6 +73,16 @@ public class MainActivity extends AppCompatActivity {
     // UI stuff.
     Button editRedditors;
     SharedPreferences sharedPreferences;
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(resultCode == 42) {
+            // TODO check if there was anything changed and if there was, call this. If not, don't call this.
+            recreate();
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
