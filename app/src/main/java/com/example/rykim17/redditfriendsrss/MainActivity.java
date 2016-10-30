@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -99,11 +100,9 @@ public class MainActivity extends AppCompatActivity {
         // Init variables.
         initSharedPref();
 
-
         viewPager = (ViewPager) findViewById(R.id.pager);
         editRedditors = (Button) findViewById(R.id.btnAddRedditors);
         ClickHandler clickHandler = new ClickHandler();
-
         editRedditors.setOnClickListener(clickHandler);
 
         if(!stringRedditors.equals("")) {
@@ -120,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void initSharedPref() {
-        sharedPreferences = getPreferences(Context.MODE_PRIVATE);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         stringRedditors = sharedPreferences.getString("redditors", "");
         fontSize = sharedPreferences.getInt("fontSize", 12);

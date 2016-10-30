@@ -3,6 +3,7 @@ package com.example.rykim17.redditfriendsrss;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -30,7 +31,7 @@ public class Settings extends AppCompatActivity {
         getSupportActionBar().setDisplayShowTitleEnabled(true);
 
         initUIElements();
-        sharedPreferences = getPreferences(Context.MODE_PRIVATE);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         loadValues();
     }
 

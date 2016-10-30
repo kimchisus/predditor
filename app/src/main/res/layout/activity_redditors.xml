@@ -5,6 +5,7 @@
     android:id="@+id/activity_redditors"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="com.example.rykim17.redditfriendsrss.Redditors">
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
@@ -16,4 +17,9 @@
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         app:titleTextColor="@android:color/background_light" />
+
+        <ListView
+            android:id="@+id/listViewRedditors"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 </LinearLayout>
