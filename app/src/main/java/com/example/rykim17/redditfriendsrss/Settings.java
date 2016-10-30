@@ -1,5 +1,8 @@
 package com.example.rykim17.redditfriendsrss;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -9,6 +12,7 @@ import android.widget.Button;
 import android.widget.Spinner;
 
 public class Settings extends AppCompatActivity {
+    SharedPreferences sharedPreferences;
     Button btnSave;
     Spinner fontSize;
     Spinner fontType;
@@ -27,6 +31,8 @@ public class Settings extends AppCompatActivity {
         getSupportActionBar().setDisplayShowTitleEnabled(true);
 
         initUIElements();
+        sharedPreferences = getPreferences(Context.MODE_PRIVATE);
+        loadValues();
     }
 
     public void initUIElements() {
@@ -38,6 +44,9 @@ public class Settings extends AppCompatActivity {
         setSpinner(R.array.font_type, fontType);
         setSpinner(R.array.font_size, fontSize);
         setSpinner(R.array.order_by, orderBy);
+
+        ClickHandler clickHandler = new ClickHandler();
+        btnSave.setOnClickListener(clickHandler);
     }
 
     public void setSpinner(int resourceId, Spinner spinner){
@@ -58,6 +67,28 @@ public class Settings extends AppCompatActivity {
     }
 
     public void savePreferences() {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("fontType", fontType.getSelectedItem().toString());
+        editor.putInt("fontSize", Integer.parseInt(fontSize.getSelectedItem().toString()));
+        editor.putBoolean("isDescending", getOrderByValue());
+        editor.commit();
+        finish();
+    }
+
+    public boolean getOrderByValue() {
+        return orderBy.getSelectedItem().toString().equals("Posts ascending") ? false : true;
+    }
+
+    public void loadValues() {
+        Resources res = getResources();
+
+        String sFontType = sharedPreferences.getString("fontType", "Arial");
+        String sFontSize = Integer.toString(sharedPreferences.getInt("fontSize", 12));
+        String sIsDescending = sharedPreferences.getBoolean("isDescending", true) == true ? "Posts descending" : "Posts ascending";
+
+        fontType.setSelection(((ArrayAdapter)fontType.getAdapter()).getPosition(sFontType));
+        fontSize.setSelection(((ArrayAdapter)fontSize.getAdapter()).getPosition(sFontSize));
+        orderBy.setSelection(((ArrayAdapter)orderBy.getAdapter()).getPosition(sIsDescending));
 
     }
 }

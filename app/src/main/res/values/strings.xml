@@ -16,7 +16,7 @@
         <item>18</item>
     </string-array>
     <string-array name="order_by">
-        <item>Posts ascending</item>
         <item>Posts descending</item>
+        <item>Posts ascending</item>
     </string-array>
 </resources>

@@ -160,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void openSettings() {
         Intent i = new Intent(this, Settings.class);
-        startActivity(i);
+        startActivityForResult(i, 111);
     }
 
     public void openEditRedditors() {
