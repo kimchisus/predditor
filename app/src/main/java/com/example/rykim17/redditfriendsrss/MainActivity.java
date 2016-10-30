@@ -54,14 +54,24 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 public class MainActivity extends AppCompatActivity {
+    // UI Adapters
     UserCollectionPagerAdapter userCollectionPagerAdapter;
     ViewPager viewPager;
     SAXParser saxParser;
+    RssProcessingTask rssProcessingTask;
+
+    // Global Variables
     ArrayList<Redditor> redditors;
     ArrayList<String> userNames;
     int currentUserIndex;
-    RssProcessingTask rssProcessingTask;
+    int fontSize;
+    boolean isDescending;
+    String stringRedditors;
+    String fontType;
+
+    // UI stuff.
     Button editRedditors;
+    SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,8 +86,9 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayShowTitleEnabled(true);
 
         // Init variables.
-        SharedPreferences sharedPreferences = getPreferences(Context.MODE_PRIVATE);
-        String stringRedditors = sharedPreferences.getString("redditors", "");
+        initSharedPref();
+
+
         viewPager = (ViewPager) findViewById(R.id.pager);
         editRedditors = (Button) findViewById(R.id.btnAddRedditors);
         ClickHandler clickHandler = new ClickHandler();
@@ -97,13 +108,21 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void initSharedPref() {
+        sharedPreferences = getPreferences(Context.MODE_PRIVATE);
+
+        stringRedditors = sharedPreferences.getString("redditors", "");
+        fontSize = sharedPreferences.getInt("fontSize", 12);
+        fontType = sharedPreferences.getString("fontType", "Arial");
+        isDescending = sharedPreferences.getBoolean("isDescending", true);
+    }
+
     public class ClickHandler implements View.OnClickListener {
         @Override
         public void onClick(View v) {
             handleView(v.getId());
         }
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -132,11 +151,16 @@ public class MainActivity extends AppCompatActivity {
                 openEditRedditors();
                 break;
             case R.id.settings:
-                Toast.makeText(this, "Settings", Toast.LENGTH_SHORT).show();
+                openSettings();
                 break;
         }
 
         return result;
+    }
+
+    public void openSettings() {
+        Intent i = new Intent(this, Settings.class);
+        startActivity(i);
     }
 
     public void openEditRedditors() {

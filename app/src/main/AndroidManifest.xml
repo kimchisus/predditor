@@ -18,7 +18,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".RedditView" />
-        <activity android:name=".Redditors"></activity>
+        <activity android:name=".Redditors" />
+        <activity android:name=".Settings"></activity>
     </application>
 
 </manifest>

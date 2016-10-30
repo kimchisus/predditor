@@ -1,3 +1,22 @@
 <resources>
     <string name="app_name">Predditor</string>
+    <string-array name="font_type">
+        <item>Arial</item>
+        <item>Times New Roman</item>
+    </string-array>
+    <string-array name="font_size">
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
+        <item>15</item>
+        <item>16</item>
+        <item>17</item>
+        <item>18</item>
+    </string-array>
+    <string-array name="order_by">
+        <item>Posts ascending</item>
+        <item>Posts descending</item>
+    </string-array>
 </resources>
