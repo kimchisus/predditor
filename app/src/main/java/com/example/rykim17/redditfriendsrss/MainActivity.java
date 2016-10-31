@@ -56,12 +56,10 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements OnTaskCompleted {
     // UI Adapters
     UserCollectionPagerAdapter userCollectionPagerAdapter;
     ViewPager viewPager;
-    SAXParser saxParser;
-    RssProcessingTask rssProcessingTask;
 
     // Global Variables
     ArrayList<Redditor> redditors;
@@ -108,12 +106,27 @@ public class MainActivity extends AppCompatActivity {
             userNames = new ArrayList<String>(Arrays.asList(stringRedditors.split(",")));
             redditors = new ArrayList<Redditor>();
             currentUserIndex = 0;
-            rssProcessingTask = new RssProcessingTask();
-            rssProcessingTask.execute();
+
+            ArrayList<RSSHandler> rssHandlers = new ArrayList<RSSHandler>();
+
+            for(int i = 0; i < userNames.size(); i++) {
+                rssHandlers.add(new RSSHandler(userNames.get(i), this));
+                rssHandlers.get(i).execute();
+            }
         } else {
             viewPager.setVisibility(View.GONE);
             RelativeLayout noRedditors = (RelativeLayout)findViewById(R.id.noRedditors);
             noRedditors.setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override
+    public void onTaskCompleted(Redditor redditor) {
+        redditors.add(redditor);
+
+        if(redditors.size() == userNames.size()) {
+            userCollectionPagerAdapter = new UserCollectionPagerAdapter(getSupportFragmentManager(), redditors);
+            viewPager.setAdapter(userCollectionPagerAdapter);
         }
     }
 
@@ -176,68 +189,6 @@ public class MainActivity extends AppCompatActivity {
         Intent i = new Intent(this, Redditors.class);
         startActivity(i);
     }
-
-    class RssProcessingTask extends AsyncTask<Void, Void, Void> {
-        private RedditUserCommentHandler commentHandler;
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            URL url = null;
-            HttpURLConnection connection = null;
-
-            if(saxParser == null) {
-                SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
-
-                try {
-                    saxParser = saxParserFactory.newSAXParser();
-                } catch (ParserConfigurationException e) {
-                    e.printStackTrace();
-                } catch (SAXException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            try {
-                url = new URL("https://www.reddit.com/user/" + userNames.get(currentUserIndex) + "/comments/.rss");
-                connection = (HttpURLConnection)url.openConnection();
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            commentHandler = new RedditUserCommentHandler(userNames.get(currentUserIndex));
-
-            try {
-                saxParser.parse(connection.getInputStream(), commentHandler);
-            } catch (SAXException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-
-            redditors.add(new Redditor(userNames.get(currentUserIndex), commentHandler.getTitles(),
-                    commentHandler.getContent(), commentHandler.getUrls(), commentHandler.getTime(), commentHandler.getSubreddit(), commentHandler.getId()));
-
-            if(currentUserIndex == userNames.size() - 1) {
-                userCollectionPagerAdapter = new UserCollectionPagerAdapter(getSupportFragmentManager(), redditors);
-                viewPager.setAdapter(userCollectionPagerAdapter);
-            } else {
-                currentUserIndex++;
-                rssProcessingTask = new RssProcessingTask();
-                rssProcessingTask.execute();
-            }
-        }
-    }
-
-
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
