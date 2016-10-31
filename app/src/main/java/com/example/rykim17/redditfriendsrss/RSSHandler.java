@@ -79,7 +79,8 @@ public class RSSHandler extends AsyncTask<Void, Void, Void> {
         super.onPostExecute(aVoid);
 
         this.redditor = new Redditor(redditorName, commentHandler.getTitles(),
-                commentHandler.getContent(), commentHandler.getUrls(), commentHandler.getTime(), commentHandler.getSubreddit(), commentHandler.getId());
+                commentHandler.getContent(), commentHandler.getUrls(), commentHandler.getTime(),
+                commentHandler.getSubreddit(), commentHandler.getId());
 
         listener.onTaskCompleted(this.redditor);
     }

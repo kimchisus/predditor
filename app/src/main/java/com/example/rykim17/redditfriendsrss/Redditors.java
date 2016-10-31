@@ -56,6 +56,7 @@ public class Redditors extends AppCompatActivity implements DialogAddRedditor.No
         listView = (ListView)findViewById(R.id.listViewRedditors);
         redditorAdapter = new RedditorAdapter(this, R.layout.redditor_template, redditors);
         listView.setAdapter(redditorAdapter);
+        setResult(1);
     }
 
     @Override
@@ -82,6 +83,7 @@ public class Redditors extends AppCompatActivity implements DialogAddRedditor.No
             editor.putString("redditors", putString);
             editor.commit();
             redditorAdapter.notifyDataSetChanged();
+            setResult(42);
         }
     }
 
@@ -120,10 +122,12 @@ public class Redditors extends AppCompatActivity implements DialogAddRedditor.No
 
     public class RedditorAdapter extends ArrayAdapter<String> {
         ArrayList<String> redditors;
+        SharedPreferences sharedPreferences;
 
         public RedditorAdapter(Context context, int resource, ArrayList<String> redditors) {
             super(context, resource, redditors);
             this.redditors = redditors;
+            sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         }
 
         @NonNull
@@ -138,21 +142,39 @@ public class Redditors extends AppCompatActivity implements DialogAddRedditor.No
 
             TextView name = (TextView)v.findViewById(R.id.templateRedditorName);
             Button btnRemove = (Button)v.findViewById(R.id.btnTemplateRedditorRemove);
-
             name.setText(this.redditors.get(position));
+            btnRemove.setTag(position);
 
             btnRemove.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     switch(v.getId()) {
                         case R.id.btnTemplateRedditorRemove:
-                            Toast.makeText(getContext(), "Test", Toast.LENGTH_SHORT).show();
+                            removeItem((int)v.getTag());
                             break;
                     }
                 }
             });
 
             return v;
+        }
+
+        public void removeItem(int position) {
+            String sRedditors = "";
+            String comma = "";
+
+            this.redditors.remove(position);
+
+            for(int i = 0; i < redditors.size(); i++) {
+                sRedditors += comma + redditors.get(i);
+                comma = ",";
+            }
+
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString("redditors", sRedditors);
+            editor.commit();
+            notifyDataSetChanged();
+            setResult(42);
         }
     }
 }

@@ -187,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements OnTaskCompleted {
 
     public void openEditRedditors() {
         Intent i = new Intent(this, Redditors.class);
-        startActivity(i);
+        startActivityForResult(i, 111);
     }
 
     @Override
@@ -258,6 +258,8 @@ public class MainActivity extends AppCompatActivity implements OnTaskCompleted {
             rssRefresh = new RSSHandler(redditor.getUserName(), this);
             rssRefresh.execute();
         }
+
+        // TODO Ask Maddy if she wants to grab coffee.
 
         @Nullable
         @Override

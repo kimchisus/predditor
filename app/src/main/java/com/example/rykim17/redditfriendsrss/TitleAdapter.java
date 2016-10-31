@@ -38,7 +38,6 @@ public class TitleAdapter extends ArrayAdapter<Comment> {
         super(context, resource, comments);
         this.comments = comments;
 
-
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         this.fontSize = sharedPreferences.getInt("fontSize", 12);
         this.fontType = sharedPreferences.getString("fontType", "Arial");
