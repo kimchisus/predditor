@@ -63,7 +63,7 @@ class RedditUserCommentHandler extends DefaultHandler {
 
             // Format the url
             String urlStr = url.get(i);
-            urlStr = "http://www.reddit.com" + urlStr + "?context=3";
+            urlStr = "http://www.reddit.com" + urlStr;
             url.set(i, urlStr);
 
             // Format the content

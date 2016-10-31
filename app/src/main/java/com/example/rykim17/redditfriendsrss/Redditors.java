@@ -22,6 +22,8 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -141,7 +143,7 @@ public class Redditors extends AppCompatActivity implements DialogAddRedditor.No
             }
 
             TextView name = (TextView)v.findViewById(R.id.templateRedditorName);
-            Button btnRemove = (Button)v.findViewById(R.id.btnTemplateRedditorRemove);
+            ImageView btnRemove = (ImageView)v.findViewById(R.id.btnTemplateRedditorRemove);
             name.setText(this.redditors.get(position));
             btnRemove.setTag(position);
 
