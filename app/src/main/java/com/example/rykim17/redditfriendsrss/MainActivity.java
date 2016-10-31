@@ -78,8 +78,8 @@ public class MainActivity extends AppCompatActivity implements OnTaskCompleted {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        // 42 means that changes were made to shared preferences.
         if(resultCode == 42) {
-            // TODO check if there was anything changed and if there was, call this. If not, don't call this.
             recreate();
         }
     }
@@ -94,7 +94,6 @@ public class MainActivity extends AppCompatActivity implements OnTaskCompleted {
         getSupportActionBar().setIcon(R.drawable.snoo);
         getSupportActionBar().setTitle("Predditor");
         getSupportActionBar().setDisplayShowTitleEnabled(true);
-
         initSharedPref();
 
         viewPager = (ViewPager) findViewById(R.id.pager);
@@ -258,8 +257,6 @@ public class MainActivity extends AppCompatActivity implements OnTaskCompleted {
             rssRefresh = new RSSHandler(redditor.getUserName(), this);
             rssRefresh.execute();
         }
-
-        // TODO Ask Maddy if she wants to grab coffee.
 
         @Nullable
         @Override
