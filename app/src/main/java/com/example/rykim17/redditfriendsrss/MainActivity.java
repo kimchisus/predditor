@@ -19,6 +19,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.ListFragment;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -90,14 +91,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Toolbar stuff because it doesn't work by default WHYYYYY?! FUUUUUUU~
         Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(myToolbar);
         getSupportActionBar().setIcon(R.drawable.snoo);
         getSupportActionBar().setTitle("Predditor");
         getSupportActionBar().setDisplayShowTitleEnabled(true);
 
-        // Init variables.
         initSharedPref();
 
         viewPager = (ViewPager) findViewById(R.id.pager);
@@ -207,7 +206,7 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-            commentHandler = new RedditUserCommentHandler();
+            commentHandler = new RedditUserCommentHandler(userNames.get(currentUserIndex));
 
             try {
                 saxParser.parse(connection.getInputStream(), commentHandler);
@@ -225,7 +224,7 @@ public class MainActivity extends AppCompatActivity {
             super.onPostExecute(aVoid);
 
             redditors.add(new Redditor(userNames.get(currentUserIndex), commentHandler.getTitles(),
-                    commentHandler.getContent(), commentHandler.getUrls(), commentHandler.getTime(), commentHandler.getSubreddit()));
+                    commentHandler.getContent(), commentHandler.getUrls(), commentHandler.getTime(), commentHandler.getSubreddit(), commentHandler.getId()));
 
             if(currentUserIndex == userNames.size() - 1) {
                 userCollectionPagerAdapter = new UserCollectionPagerAdapter(getSupportFragmentManager(), redditors);
@@ -238,122 +237,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    class RedditUserCommentHandler extends DefaultHandler {
-        private ArrayList<String> title, content, url, time, subreddit;
-        private StringBuilder stringBuilder;
-        private boolean inTitle, inContent, inTime;
 
-        public RedditUserCommentHandler() {
-            stringBuilder = new StringBuilder();
-            title = new ArrayList<String>();
-            content = new ArrayList<String>();
-            url = new ArrayList<String>();
-            time = new ArrayList<String>();
-            subreddit = new ArrayList<String>();
-        }
-
-        public ArrayList<String> getTitles() {
-            return this.title;
-        }
-        public ArrayList<String> getUrls() {
-            return this.url;
-        }
-        public ArrayList<String> getContent() { return this.content; }
-        public ArrayList<String> getTime() { return this.time; }
-        public ArrayList<String> getSubreddit() { return this.subreddit; }
-
-        @Override
-        public void startDocument() throws SAXException {
-            super.startDocument();
-        }
-
-        @Override
-        public void endDocument() throws SAXException {
-            super.endDocument();
-
-            // The first for these are just data for the user. Un-needed.
-            title.remove(0);
-            time.remove(0);
-            subreddit.remove(0);
-
-            // Format the xml stuff.
-            for(int i = 0; i < title.size(); i++) {
-                // Format the title
-                String titleStr = title.get(i);
-                titleStr = titleStr.replace("/u/" + userNames.get(currentUserIndex) + " on", "").trim();
-                title.set(i, titleStr);
-
-                // Format the url
-                String urlStr = url.get(i);
-                urlStr = "http://www.reddit.com" + urlStr + "?context=3";
-                url.set(i, urlStr);
-
-                // Format the content
-                String contentStr = content.get(i);
-                contentStr = Html.fromHtml(contentStr).toString();
-                content.set(i, contentStr);
-
-                // Format the subreddit name
-                String subRedditStr = subreddit.get(i);
-                subreddit.set(i, subRedditStr);
-            }
-        }
-
-        @Override
-        public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-            // Clear the string builder
-            stringBuilder.setLength(0);
-
-            switch(qName) {
-                case "title":
-                    inTitle = true;
-                    break;
-                case "content":
-                    inContent = true;
-                    break;
-                case "link":
-                    if(attributes.getValue("href").length() > 3 && attributes.getValue("href").substring(0,3).equals("/r/")) {
-                        url.add(attributes.getValue("href"));
-                    }
-                case "updated":
-                    inTime = true;
-                    break;
-                case "category":
-                    if(attributes.getValue("label").length() > 3 && attributes.getValue("label").substring(0,3).equals("/r/")) {
-                        subreddit.add(attributes.getValue("label"));
-                    }
-                    break;
-            }
-        }
-
-        @Override
-        public void endElement(String uri, String localName, String qName) throws SAXException {
-            super.endElement(uri, localName, qName);
-
-            inTitle = inContent = inTime = false;
-
-            switch(qName) {
-                case "title":
-                    title.add(stringBuilder.toString());
-                    break;
-                case "content":
-                    content.add(stringBuilder.toString());
-                    break;
-                case "updated":
-                    time.add(stringBuilder.toString());
-                    break;
-            }
-        }
-
-        @Override
-        public void characters(char[] ch, int start, int length) throws SAXException {
-            super.characters(ch, start, length);
-
-            if(inTitle || inContent || inTime) {
-                stringBuilder.append(ch, start, length);
-            }
-        }
-    }
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
@@ -395,16 +279,46 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public static class UserFragment extends ListFragment {
+    public static class UserFragment extends ListFragment implements SwipeRefreshLayout.OnRefreshListener, OnTaskCompleted {
         public static final String ARG_OBJECT = "object";
+        SwipeRefreshLayout swipeLayout;
+        Redditor redditor;
+        RSSHandler rssRefresh;
+        TitleAdapter adapter;
+
+        @Override
+        public void onTaskCompleted(Redditor redditor) {
+            changeComments(redditor.getComments());
+            adapter.notifyDataSetChanged();
+            swipeLayout.setRefreshing(false);
+        }
+
+        public void changeComments(ArrayList<Comment> comments) {
+            this.redditor.getComments().clear();
+
+            // Find ids to add.
+            for(int i = 0; i < comments.size(); i++) {
+                this.redditor.getComments().add(comments.get(i));
+            }
+        }
+
+        @Override
+        public void onRefresh() {
+            rssRefresh = new RSSHandler(redditor.getUserName(), this);
+            rssRefresh.execute();
+        }
 
         @Nullable
         @Override
         public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.user_template, container, false);
+            swipeLayout = (SwipeRefreshLayout)rootView.findViewById(R.id.swiperefresh);
+            swipeLayout.setOnRefreshListener(this);
+
             Bundle args = getArguments();
-            Redditor redditor = args.getParcelable("redditor");
-            setListAdapter(new TitleAdapter(getActivity(), R.layout.user_template, redditor.getComments()));
+            redditor = args.getParcelable("redditor");
+            adapter = new TitleAdapter(getActivity(), R.layout.user_template, this.redditor.getComments());
+            setListAdapter(adapter);
             return rootView;
         }
     }

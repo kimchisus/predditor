@@ -14,12 +14,12 @@ import java.util.ArrayList;
 //        private String userName;
 //        ArrayList<Comment> comments;
 //
-//        public Redditor(String userName, ArrayList<String> titles, ArrayList<String> contents, ArrayList<String> urls, ArrayList<String> times, ArrayList<String> subReddits) {
+//        public Redditor(String userName, ArrayList<String> titles, ArrayList<String> contents, ArrayList<String> urls, ArrayList<String> times, ArrayList<String> subReddits, ArrayList<String> ids) {
 //            comments = new ArrayList<Comment>();
 //            this.userName = userName;
 //
 //            for(int i = 0; i < titles.size(); i++) {
-//                this.comments.add(new Comment(titles.get(i), contents.get(i), urls.get(i), times.get(i), subReddits.get(i)));
+//                this.comments.add(new Comment(titles.get(i), contents.get(i), urls.get(i), times.get(i), subReddits.get(i), ids.get(i)));
 //            }
 //        }
 //
@@ -31,12 +31,13 @@ public class Redditor implements Parcelable {
     private String userName;
     ArrayList<Comment> comments;
 
-    public Redditor(String userName, ArrayList<String> titles, ArrayList<String> contents, ArrayList<String> urls, ArrayList<String> times, ArrayList<String> subReddits) {
+    public Redditor(String userName, ArrayList<String> titles, ArrayList<String> contents,
+                    ArrayList<String> urls, ArrayList<String> times, ArrayList<String> subReddits, ArrayList<String> ids) {
         comments = new ArrayList<Comment>();
         this.userName = userName;
 
         for(int i = 0; i < titles.size(); i++) {
-            this.comments.add(new Comment(titles.get(i), contents.get(i), urls.get(i), times.get(i), subReddits.get(i)));
+            this.comments.add(new Comment(titles.get(i), contents.get(i), urls.get(i), times.get(i), subReddits.get(i), ids.get(i)));
         }
     }
 

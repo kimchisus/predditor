@@ -8,19 +8,26 @@ import android.os.Parcelable;
  */
 
 
-public class Comment implements Parcelable {
+public class Comment implements Parcelable, Comparable<Comment> {
     private String title;
     private String content;
     private String url;
     private String time;
     private String subReddit;
+    private String id;
 
-    public Comment(String title, String content, String url, String time, String subReddit) {
+    public Comment(String title, String content, String url, String time, String subReddit, String id) {
         this.title = title;
         this.content = content;
         this.url = url;
         this.time = time;
         this.subReddit = subReddit;
+        this.id = id;
+    }
+
+    @Override
+    public int compareTo(Comment o) {
+        return o.id.equals(this.id) ? 1 : 0;
     }
 
     public String getTitle() {
@@ -32,6 +39,7 @@ public class Comment implements Parcelable {
     }
     public String getTime() { return this.time; }
     public String getSubReddit() { return this.subReddit; }
+    public String getIds() { return this.id; }
 
     protected Comment(Parcel in) {
         title = in.readString();
@@ -39,6 +47,7 @@ public class Comment implements Parcelable {
         url = in.readString();
         time = in.readString();
         subReddit = in.readString();
+        id = in.readString();
     }
 
     @Override
@@ -53,6 +62,7 @@ public class Comment implements Parcelable {
         dest.writeString(url);
         dest.writeString(time);
         dest.writeString(subReddit);
+        dest.writeString(id);
     }
 
     @SuppressWarnings("unused")
@@ -75,13 +85,15 @@ public class Comment implements Parcelable {
 //        private String url;
 //        private String time;
 //        private String subReddit;
+//        private String id;
 //
-//        public Comment(String title, String content, String url, String time, String subReddit) {
+//        public Comment(String title, String content, String url, String time, String subReddit, String id) {
 //            this.title = title;
 //            this.content = content;
 //            this.url = url;
 //            this.time = time;
 //            this.subReddit = subReddit;
+//            this.id = id;
 //        }
 //
 //        public String getTitle() {
@@ -93,4 +105,5 @@ public class Comment implements Parcelable {
 //        }
 //        public String getTime() { return this.time; }
 //        public String getSubReddit() { return this.subReddit; }
+//        public String getId() { return this.id; }
 //    }
